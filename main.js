@@ -2,7 +2,9 @@ function main() {
     //Access the canvas through DOM: Document Object Model
     var canvas = document.getElementById('myCanvas');   // The paper
     var gl = canvas.getContext('webgl');                // The brush and the paints
-
+    // const canvas = document.querySelector('.myCanvas');
+    const width = canvas.width = window.innerWidth;
+    const height = canvas.height = window.innerHeight;
     var vertices = [
         -0.5, -0.5, 0.0, 1.0, 0.0,     // Point A
          0.5, -0.5, 0.0, 0.0, 1.0,     // Point B
