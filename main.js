@@ -3,8 +3,8 @@ function main() {
     var canvas = document.getElementById('myCanvas');   // The paper
     var gl = canvas.getContext('webgl');                // The brush and the paints
     // const canvas = document.querySelector('.myCanvas');
-    const width = canvas.width = window.innerWidth;
-    const height = canvas.height = window.innerHeight;
+    // const width = canvas.width = window.innerWidth;
+    // const height = canvas.height = window.innerHeight;
     var vertices = [
         -0.5, -0.5, 0.0, 1.0, 0.0,     // Point A
          0.5, -0.5, 0.0, 0.0, 1.0,     // Point B
@@ -92,8 +92,8 @@ function main() {
         freeze = !freeze;
     }
     document.addEventListener("click", onMouseClick, false);
-
-    var speed = [3/6000000, 1/600000000];
+    //var x and y
+    var speed = [3/6000000, 1/600];
     // Create a uniform to animate the vertices
     var uChange = gl.getUniformLocation(shaderProgram, "uChange");
     var change = [0, 0];
