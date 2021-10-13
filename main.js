@@ -6,12 +6,102 @@ function main() {
     // const width = canvas.width = window.innerWidth;
     // const height = canvas.height = window.innerHeight;
     var vertices = [
-        -0.5, -0.5, 0.0, 1.0, 0.0,     // Point A
-         0.5, -0.5, 0.0, 0.0, 1.0,     // Point B
-         0.5,  0.5, 1.0, 0.0, 0.0,     // Point C
-         0.5,  0.5, 1.0, 0.0, 0.0,     // Point C
-        -0.5,  0.5, 1.0, 0.0, 0.0,     // Point D
-        -0.5, -0.5, 0.0, 1.0, 0.0      // Point A
+        // -0.5, -0.5, 0.0, 1.0, 0.0,     // Point A
+        //  0.5, -0.5, 0.0, 0.0, 1.0,     // Point B
+        //  0.5,  0.5, 1.0, 0.0, 0.0,     // Point C
+
+        //  0.5,  0.5, 1.0, 0.0, 0.0,     // Point C
+        // -0.5,  0.5, 1.0, 0.0, 0.0,     // Point D
+        // -0.5, -0.5, 0.0, 1.0, 0.0      // Point A
+        //sisi A
+        -1, -1, -1, 
+         1, -1, -1,
+         1,  1, -1,
+        -1,  1, -1,
+
+        //Sisi B
+        -1, -1, 1, 
+         1, -1, 1,
+         1,  1, 1,
+        -1,  1, 1,
+
+        //Sisi C
+        -1, -1, -1,
+        -1,  1, -1,
+        -1,  1,  1,
+        -1, -1,  1,
+
+        //Sisi D
+        1, -1, -1,
+        1,  1, -1,
+        1,  1,  1,
+        1, -1,  1,
+
+        //Sisi E
+        -1, -1, -1,
+        -1, -1,  1,
+         1, -1,  1,
+         1, -1, -1,
+
+        //Sisi F
+        -1, 1, -1,
+        -1, 1,  1,
+         1, 1,  1,
+         1, 1, -1,
+
+    ];
+    
+    var colors =[
+        //Sisi A
+        0, 0, 1, 
+        0, 0, 1,
+        0, 0, 1, 
+        0, 0, 1,
+
+        //Sisi B
+        1, 1, 0, 
+        1, 1, 0,
+        1, 1, 0, 
+        1, 1, 0,
+
+        //Sisi C
+        0, 1, 0, 
+        0, 1, 0,
+        0, 1, 0, 
+        0, 1, 0,
+
+        //Sisi D
+        1, 0, 0, 
+        1, 0, 0,
+        1, 0, 0, 
+        1, 0, 0,
+
+        //Sisi E
+        0, 1, 1, 
+        0, 1, 1,
+        0, 1, 1, 
+        0, 1, 1,
+
+        //Sisi F
+        1, 1, 0, 
+        1, 1, 0,
+        1, 1, 0, 
+        1, 1, 0,
+
+    ];
+
+    var indices = [
+        0, 1, 2, 
+        0, 2, 3,
+        4, 5, 6,
+        4, 6, 7,
+
+        8,   9, 10,
+        8,  10, 11,
+        12, 13, 14,
+        12, 14, 15,
+
+
     ];
 
     // Create a linked-list for storing the vertices data
@@ -93,7 +183,7 @@ function main() {
     }
     document.addEventListener("click", onMouseClick, false);
     //var x and y
-    var speed = [3/6000000, 1/600];
+    var speed = [3/600, 1/600];
     // Create a uniform to animate the vertices
     var uChange = gl.getUniformLocation(shaderProgram, "uChange");
     var change = [0, 0];
