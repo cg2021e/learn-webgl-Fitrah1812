@@ -206,13 +206,13 @@ function main() {
         var ang = Math.tan*angle*0.5*Math.PI/180;
         return [
             0.5/ang, 0, 0, 0,
-            0, 0.5/ang, 0, 0,
-            0,0, -(zMax+zMin)/(zMax-zMin), 0,
-            0, 0, 0, (-2*zMax*zMin)/(zMin-zMax)
+            0, 0.5*a/ang, 0, 0,
+            0,0, -(zMax+zMin)/(zMax-zMin), -1,
+            0, 0, (-2*zMax*zMin)/(zMin-zMax), 0
         ];
     } 
 
-    var proj_matrix = get_projection(40, canvas.width/canvas.clientHeight, 1, 100);
+    var proj_matrix = get_projection(40, canvas.width/canvas.height, 1, 100);
     var mo_matrix = [
         1,0,0,0,
         0,1,0,0,
@@ -284,8 +284,24 @@ function main() {
         rotateY(mo_matrix, dt* 0.003);
 
         wkt = time;
+
+        //Melakukan pengecekan yang harus ada di camera
         gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
+        gl.clearColor(0.5, 0.5, 0.5, 1.0);
+        gl.viewport(0.0, 0.0, canvas.width, canvas.height);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.uniformMatrix4fv(Pmatrix, false, proj_matrix);
+        gl.uniformMatrix4fv(Vmatrix, false, view_matrix);
+        gl.uniformMatrix4fv(Mmatrix, false, mo_matrix);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
+        gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+
+        requestAnimationFrame(animate);
     }
+    animate(0);
 
     // var freeze = false;
     // // Apply some interaction using mouse
