@@ -101,13 +101,28 @@ function main() {
         12, 13, 14,
         12, 14, 15,
 
-
+        16, 17, 18,
+        16, 18, 19,
+        20, 21, 22,
+        20, 22, 23,
     ];
 
     // Create a linked-list for storing the vertices data
-    var buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    var vertex_buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+    // Create a linked-list for storing the vertices data
+    var color_buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+
+    // Create a linked-list for storing the vertices data
+    var index_buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, index_buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(indices), gl.STATIC_DRAW);
+    
 
     var vertexShaderSource = `
         attribute vec2 aPosition;
