@@ -123,9 +123,9 @@ function main() {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
-
+    //define the shaders
     var vertexShaderSource = `
-        attribute vec2 aPosition;
+        attribute vec3 aPosition;
         attribute vec3 aColor;
         varying vec3 vColor;
         uniform vec2 uChange;
