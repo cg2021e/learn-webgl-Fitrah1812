@@ -128,10 +128,11 @@ function main() {
         attribute vec3 aPosition;
         attribute vec3 aColor;
         varying vec3 vColor;
-        uniform vec2 uChange;
+        uniform mat4 Pmatrix;
+        uniform mat4 Vmatrix;
+        uniform mat4 Mmatrix;
         void main() {
-            gl_PointSize = 10.0;
-            gl_Position = vec4(aPosition + uChange, 0.0, 1.0);
+            gl_Position = Pmatrix*Vmatrix*Mmatrix*vec4(aPosition, 1.0);
             vColor = aColor;
         }
     `;
@@ -163,33 +164,69 @@ function main() {
 
     // Link the two .o files, so together they can be a runnable program/context.
     gl.linkProgram(shaderProgram);
-
+    
+    var Pmatrix = gl.getUniformLocation(shaderProgram, "Pmatrix");
+    var Vmatrix = gl.getUniformLocation(shaderProgram, "Vmatrix");
+    var Mmatrix = gl.getUniformLocation(shaderProgram, "Mmatrix");
     // Start using the context (analogy: start using the paints and the brushes)
-    gl.useProgram(shaderProgram);
+    // gl.useProgram(shaderProgram);
 
     // Teach the computer how to collect
     //  the positional values from ARRAY_BUFFER
     //  to each vertex being processed
+    gl.bindBuffer(gl.ARRAY_BUFFER,vertex_buffer);
     var aPosition = gl.getAttribLocation(shaderProgram, "aPosition");
     gl.vertexAttribPointer(
         aPosition, 
-        2, 
+        3, 
         gl.FLOAT, 
         false, 
-        5 * Float32Array.BYTES_PER_ELEMENT, 
+        0, 
         0
     );
     gl.enableVertexAttribArray(aPosition);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER,vertex_buffer);
     var aColor = gl.getAttribLocation(shaderProgram, "aColor");
     gl.vertexAttribPointer(
         aColor, 
         3, 
         gl.FLOAT, 
         false, 
-        5 * Float32Array.BYTES_PER_ELEMENT, 
-        2 * Float32Array.BYTES_PER_ELEMENT
+        0, 
+        0
     );
+
     gl.enableVertexAttribArray(aColor);
+    
+    gl.useProgram(shaderProgram);
+
+    //matrix
+    function get_projection(angle, a, zMin, zMax){
+        var ang = Math.tan*angle*0.5*Math.PI/180;
+        return [
+            0.5/ang, 0, 0, 0,
+            0, 0.5/ang, 0, 0,
+            0,0, -(zMax+zMin)/(zMax-zMin), 0,
+            0, 0, 0, (-2*zMax*zMin)/(zMin-zMax)
+        ];
+    } 
+
+    var proj_matrix = get_projection(40, canvas.width/canvas.clientHeight, 1, 100);
+    var mo_matrix = [
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        0,0,0,1
+    ];
+
+    var view_matrix = [
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        0,0,0,1
+    ];
+
 
     var freeze = false;
     // Apply some interaction using mouse
