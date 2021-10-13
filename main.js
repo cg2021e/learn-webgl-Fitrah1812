@@ -227,29 +227,88 @@ function main() {
         0,0,0,1
     ];
 
+    view_matrix[14] = view_matrix[14]-6;
 
-    var freeze = false;
-    // Apply some interaction using mouse
-    function onMouseClick(event) {
-        freeze = !freeze;
-    }
-    document.addEventListener("click", onMouseClick, false);
-    //var x and y
-    var speed = [3/600, 1/600];
-    // Create a uniform to animate the vertices
-    var uChange = gl.getUniformLocation(shaderProgram, "uChange");
-    var change = [0, 0];
+    //rotation Process
+    function rotateZ(m, angle){
+        var c = Math.cos(angle);
+        var s = Math.sin(angle);
+        var mv0 = m[0], mv4=m[4], mv8 =m[8];
 
-    function render() {
-        if (!freeze) {
-            change[0] = change[0] + speed[0];
-            change[1] = change[1] + speed[1];
-            gl.uniform2fv(uChange, change);
-            gl.clearColor(0.1, 0.1, 0.1, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
-        }
-        requestAnimationFrame(render);
+        m[0]= c*m[0]-s*m[1];
+        m[4] =c*m[4]-s*m[5];
+        m[8] = c*m[8]-s*m[9];
+
+        m[1]= c*m[1]+s*mv0;
+        m[5]= c*m[5]+s*mv4;
+        m[9]= c*m[9]+s*mv8;
+
     }
-    requestAnimationFrame(render);
+
+    function rotateX(m, angle){
+        var c = Math.cos(angle);
+        var s = Math.sin(angle);
+        var mv1 = m[1], mv5=m[5], mv9 =m[9];
+
+        m[1]= c*m[1]-s*m[2];
+        m[5] =c*m[5]-s*m[6];
+        m[9] = c*m[9]-s*m[10];
+
+        m[2]= c*m[2]+s*mv1;
+        m[6]= c*m[6]+s*mv5;
+        m[10]= c*m[10]+s*mv9;
+
+    }
+
+    function rotateY(m, angle){
+        var c = Math.cos(angle);
+        var s = Math.sin(angle);
+        var mv0 = m[0], mv4=m[4], mv8 =m[8];
+
+        m[0]= c*m[0]+s*m[2];
+        m[4] =c*m[4]+s*m[6];
+        m[8] = c*m[8]+s*m[10];
+
+        m[2]= c*m[2]-s*mv0;
+        m[6]= c*m[6]-s*mv4;
+        m[10]= c*m[10]-s*mv8;
+
+    }
+
+    //drawing
+    var wkt = 0;
+    var animate = function(time){
+        var dt = time -wkt;
+        rotateZ(mo_matrix, dt* 0.005);
+        rotateX(mo_matrix, dt* 0.002);
+        rotateY(mo_matrix, dt* 0.003);
+
+        wkt = time;
+        gl.enable(gl.DEPTH_TEST);
+    }
+
+    // var freeze = false;
+    // // Apply some interaction using mouse
+    // function onMouseClick(event) {
+    //     freeze = !freeze;
+    // }
+    // document.addEventListener("click", onMouseClick, false);
+    // //var x and y
+    // var speed = [3/600, 1/600];
+    // // Create a uniform to animate the vertices
+    // var uChange = gl.getUniformLocation(shaderProgram, "uChange");
+    // var change = [0, 0];
+
+    // function render() {
+    //     if (!freeze) {
+    //         change[0] = change[0] + speed[0];
+    //         change[1] = change[1] + speed[1];
+    //         gl.uniform2fv(uChange, change);
+    //         gl.clearColor(0.1, 0.1, 0.1, 1.0);
+    //         gl.clear(gl.COLOR_BUFFER_BIT);
+    //         gl.drawArrays(gl.TRIANGLES, 0, 6);
+    //     }
+    //     requestAnimationFrame(render);
+    // }
+    // requestAnimationFrame(render);
 }
