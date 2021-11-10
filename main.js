@@ -63,14 +63,15 @@ function main() {
         attribute vec3 aNormal;
         varying vec3 vColor;
         varying vec3 vNormal;
+        varying vec3 vPosition;
         uniform mat4 uModel;
         uniform mat4 uView;
         uniform mat4 uProjection;
-        
         void main() {
             gl_Position = uProjection * uView * uModel * (vec4(aPosition * 2. / 3., 1.));
             vColor = aColor;
             vNormal = aNormal;
+            vPosition = (uModel * (vec4(aPosition * 2. / 3., 1.))).xyz;
         }
     `;
 
@@ -78,18 +79,21 @@ function main() {
         precision mediump float;
         varying vec3 vColor;
         varying vec3 vNormal;
+        varying vec3 vPosition;
         uniform vec3 uLightConstant;        // It represents the light color
         uniform float uAmbientIntensity;    // It represents the light intensity
-        uniform vec3 uLightDirection;
+        // uniform vec3 uLightDirection;
+        uniform vec3 uLightPosition;
         uniform mat3 uNormalModel;
         void main() {
             vec3 ambient = uLightConstant * uAmbientIntensity;
-            vec3 normalizedLight = normalize(uLightDirection);  // [2., 0., 0.] becomes a unit vector [1., 0., 0.]
-            vec3 normalizedNormal = normalize(vNormal * uNormalModel);
+            // vec3 lightDirection = uLightDirection;
+            vec3 lightDirection = uLightPosition - vPosition;
+            vec3 normalizedLight = normalize(lightDirection);  // [2., 0., 0.] becomes a unit vector [1., 0., 0.]
+            vec3 normalizedNormal = normalize(uNormalModel * vNormal);
             float cosTheta = dot(normalizedNormal, normalizedLight);
-            float diffuseIntensity = cosTheta;
             vec3 diffuse = vec3(0., 0., 0.);
-            if (cosTheta > 0.){
+            if (cosTheta > 0.) {
                 float diffuseIntensity = cosTheta;
                 diffuse = uLightConstant * diffuseIntensity;
             }
@@ -160,8 +164,10 @@ function main() {
     var uAmbientIntensity = gl.getUniformLocation(shaderProgram, "uAmbientIntensity");
     gl.uniform3fv(uLightConstant, [1.0, 0.5, 1.0]);   // orange light
     gl.uniform1f(uAmbientIntensity, 0.4) // light intensity: 40%
-    var uLightDirection = gl.getUniformLocation(shaderProgram, "uLightDirection");
-    gl.uniform3fv(uLightDirection, [2.0, 0.0, 0.0]);    // light comes from the right side
+    // var uLightDirection = gl.getUniformLocation(shaderProgram, "uLightDirection");
+    // gl.uniform3fv(uLightDirection, [2.0, 0.0, 0.0]);    // light comes from the right side
+    var uLightPosition = gl.getUniformLocation(shaderProgram, "uLightPosition");
+    gl.uniform3fv(uLightPosition, [2.0, 2.0, 2.0]);
     var uNormalModel = gl.getUniformLocation(shaderProgram, "uNormalModel");
 
     // Connect the uniform transformation matrices
@@ -225,7 +231,7 @@ function main() {
             glMatrix.mat4.translate(model, model, change);
             // Set the model matrix in the vertex shader
             gl.uniformMatrix4fv(uModel, false, model);
-            //set the model matix for normal vector
+            // Set the model matrix for normal vector
             var normalModel = glMatrix.mat3.create();
             glMatrix.mat3.normalFromMat4(normalModel, model);
             gl.uniformMatrix3fv(uNormalModel, false, normalModel);
