@@ -85,6 +85,7 @@ function main() {
         // uniform vec3 uLightDirection;
         uniform vec3 uLightPosition;
         uniform mat3 uNormalModel;
+        uniform vec3 uViewerPosition;
         void main() {
             vec3 ambient = uLightConstant * uAmbientIntensity;
             // vec3 lightDirection = uLightDirection;
@@ -97,7 +98,17 @@ function main() {
                 float diffuseIntensity = cosTheta;
                 diffuse = uLightConstant * diffuseIntensity;
             }
-            vec3 phong = ambient + diffuse; // + specular;
+            vec3 reflector = reflect(-lightDirection, normalizedNormal);
+            vec3 normalizedReflector = normalize(reflector);
+            vec3 normalizedViewer = normalize(uViewerPosition - vPosition);
+            float cosPhi = dot(normalizedReflector, normalizedViewer);
+            vec3 specular = vec3(0., 0., 0.);
+            if (cosPhi > 0.) {
+                float shininessConstant = 100.0; 
+                float specularIntensity = pow(cosPhi, shininessConstant); 
+                specular = uLightConstant * specularIntensity;
+            }
+            vec3 phong = ambient + diffuse + specular;
             gl_FragColor = vec4(phong * vColor, 1.);
         }
     `;
@@ -159,17 +170,6 @@ function main() {
     );
     gl.enableVertexAttribArray(aNormal);
 
-    // Define the lighting and shading
-    var uLightConstant = gl.getUniformLocation(shaderProgram, "uLightConstant");
-    var uAmbientIntensity = gl.getUniformLocation(shaderProgram, "uAmbientIntensity");
-    gl.uniform3fv(uLightConstant, [1.0, 0.5, 1.0]);   // orange light
-    gl.uniform1f(uAmbientIntensity, 0.4) // light intensity: 40%
-    // var uLightDirection = gl.getUniformLocation(shaderProgram, "uLightDirection");
-    // gl.uniform3fv(uLightDirection, [2.0, 0.0, 0.0]);    // light comes from the right side
-    var uLightPosition = gl.getUniformLocation(shaderProgram, "uLightPosition");
-    gl.uniform3fv(uLightPosition, [2.0, 2.0, 2.0]);
-    var uNormalModel = gl.getUniformLocation(shaderProgram, "uNormalModel");
-
     // Connect the uniform transformation matrices
     var uModel = gl.getUniformLocation(shaderProgram, "uModel");
     var uView = gl.getUniformLocation(shaderProgram, "uView");
@@ -188,20 +188,64 @@ function main() {
 
     // Set the view matrix in the vertex shader
     var view = glMatrix.mat4.create();
+    var camera = [0, 0, 3];
     glMatrix.mat4.lookAt(
         view,
-        [0, 0, 3],      // camera position
+        camera,      // camera position
         [0, 0, 0],      // the point where camera looks at
         [0, 1, 0]       // up vector of the camera
     );
     gl.uniformMatrix4fv(uView, false, view);
 
-    var freeze = false;
+    // Define the lighting and shading
+    var uLightConstant = gl.getUniformLocation(shaderProgram, "uLightConstant");
+    var uAmbientIntensity = gl.getUniformLocation(shaderProgram, "uAmbientIntensity");
+    gl.uniform3fv(uLightConstant, [1.0, 0.5, 1.0]);   // orange light
+    gl.uniform1f(uAmbientIntensity, 0.4) // light intensity: 40%
+    // var uLightDirection = gl.getUniformLocation(shaderProgram, "uLightDirection");
+    // gl.uniform3fv(uLightDirection, [2.0, 0.0, 0.0]);    // light comes from the right side
+    var uLightPosition = gl.getUniformLocation(shaderProgram, "uLightPosition");
+    gl.uniform3fv(uLightPosition, [1.0, 1.0, 1.0]);
+    var uNormalModel = gl.getUniformLocation(shaderProgram, "uNormalModel");
+    var uViewerPosition = gl.getUniformLocation(shaderProgram, "uViewerPosition");
+    gl.uniform3fv(uViewerPosition, camera);
+
     // Apply some interaction using mouse
-    function onMouseClick(event) {
-        freeze = !freeze;
+    var dragging, lastx, lasty, rotation = glMatrix.mat4.create();
+    function onMouseDown(event) {
+        var x = event.clientX;
+        var y = event.clientY;
+        var rect = event.target.getBoundingClientRect();
+        if (
+            rect.left <= x &&
+            rect.right >= x &&
+            rect.top <= y &&
+            rect.bottom >= y
+        ) {
+            dragging = true;
+            lastx = x;
+            lasty = y;
+        }
     }
-    document.addEventListener("click", onMouseClick, false);
+    function onMouseUp(event) {
+        dragging = false;
+    }
+    function onMouseMove(event) {
+        if (dragging) {
+            var x = event.clientX;
+            var y = event.clientY;
+            var dx = (x - lastx)/60;
+            var dy = (y - lasty)/60;
+            var radx = glMatrix.glMatrix.toRadian(dy);
+            var rady = glMatrix.glMatrix.toRadian(dx);
+            glMatrix.mat4.rotate(rotation, rotation, radx, [1, 0, 0, 0]);
+            glMatrix.mat4.rotate(rotation, rotation, rady, [0, 1, 0, 0]);
+        }
+    }
+    document.addEventListener("mousedown", onMouseDown, false);
+    document.addEventListener("mouseup", onMouseUp, false);
+    document.addEventListener("mousemove", onMouseMove, false);
+
     // Apply some interaction using keyboard
     function onKeydown(event) {
         if (event.keyCode == 32) freeze = true;
@@ -212,35 +256,20 @@ function main() {
     document.addEventListener("keydown", onKeydown, false);
     document.addEventListener("keyup", onKeyup, false);
 
-    var speed = [3/600, 2/600, 0];
-    var change = [0, 0, 0];
-
     function render() {
-        if (!freeze) { // If it is not freezing, then animate the rectangle
-            if (change[0] >= 0.5 || change[0] <= -0.5) speed[0] = -speed[0];
-            if (change[1] >= 0.5 || change[1] <= -0.5) speed[1] = -speed[1];
-            change[0] = change[0] + speed[0];
-            change[1] = change[1] + speed[1];
-            // Init the model matrix
-            var model = glMatrix.mat4.create();
-            // Define a rotation matrix about x axis and store it to the model matrix
-            glMatrix.mat4.rotate(model, model, change[0], [1, 0, 0]);
-            // Define a rotation matrix about y axis and store it to the model matrix
-            glMatrix.mat4.rotate(model, model, change[1], [0, 1, 0]);
-            // Define a translation matrix and store it to the model matrix
-            glMatrix.mat4.translate(model, model, change);
-            // Set the model matrix in the vertex shader
-            gl.uniformMatrix4fv(uModel, false, model);
-            // Set the model matrix for normal vector
-            var normalModel = glMatrix.mat3.create();
-            glMatrix.mat3.normalFromMat4(normalModel, model);
-            gl.uniformMatrix3fv(uNormalModel, false, normalModel);
-            // Reset the frame buffer
-            gl.enable(gl.DEPTH_TEST);
-            gl.clearColor(0.1, 0.1, 0.1, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
-        }
+        // Init the model matrix
+        var model = glMatrix.mat4.create();
+        glMatrix.mat4.multiply(model, model, rotation);
+        gl.uniformMatrix4fv(uModel, false, model);
+        // Set the model matrix for normal vector
+        var normalModel = glMatrix.mat3.create();
+        glMatrix.mat3.normalFromMat4(normalModel, model);
+        gl.uniformMatrix3fv(uNormalModel, false, normalModel);
+        // Reset the frame buffer
+        gl.enable(gl.DEPTH_TEST);
+        gl.clearColor(0.1, 0.1, 0.1, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
