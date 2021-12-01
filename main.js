@@ -234,12 +234,18 @@ function main() {
         if (dragging) {
             var x = event.clientX;
             var y = event.clientY;
+            var xaxis = [1, 0, 0, 0];
+            var yaxis = [0, 1, 0, 0];
+            var inverseRotation = glMatrix.mat4.create();
+            glMatrix.mat4.invert(inverseRotation, rotation);
+            glMatrix.vec4.transformMat4(xaxis, xaxis, inverseRotation);
+            glMatrix.vec4.transformMat4(yaxis, yaxis, inverseRotation);
             var dx = (x - lastx)/60;
             var dy = (y - lasty)/60;
             var radx = glMatrix.glMatrix.toRadian(dy);
             var rady = glMatrix.glMatrix.toRadian(dx);
-            glMatrix.mat4.rotate(rotation, rotation, radx, [1, 0, 0, 0]);
-            glMatrix.mat4.rotate(rotation, rotation, rady, [0, 1, 0, 0]);
+            glMatrix.mat4.rotate(rotation, rotation, radx, xaxis);
+            glMatrix.mat4.rotate(rotation, rotation, rady, yaxis);
         }
     }
     document.addEventListener("mousedown", onMouseDown, false);
